@@ -415,7 +415,11 @@
     })
 
     if (error) return showAlert(error.message, 'error')
-    showAlert('Password reset email sent! Check your inbox.', 'success')
+
+    // Hide the login form and show clear success message
+    document.getElementById('form-login').style.display = 'none'
+    document.getElementById('tab-login').classList.remove('active')
+    showAlert('✅ Reset email sent to ' + email + ' — check your inbox and spam folder.', 'success')
   }
 
   // ── ENTER KEY SUPPORT ──
