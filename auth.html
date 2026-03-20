@@ -282,16 +282,33 @@
 
     <!-- LOGIN FORM -->
     <div id="form-login" style="display:none">
-      <div class="form-group">
-        <label>Email Address</label>
-        <input type="email" id="login-email" placeholder="john@email.com"/>
+      <!-- SIGN IN STATE -->
+      <div id="login-state">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="login-email" placeholder="john@email.com"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="Your password"/>
+        </div>
+        <div class="forgot"><a href="#" onclick="showForgotState()">Forgot password?</a></div>
+        <button class="btn-submit" id="btn-login" onclick="handleLogin()">Sign In →</button>
       </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="login-password" placeholder="Your password"/>
+
+      <!-- FORGOT PASSWORD STATE -->
+      <div id="forgot-state" style="display:none">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;margin-bottom:6px">Reset Password</div>
+        <p style="font-size:14px;color:var(--gray);margin-bottom:20px">Enter your email and we'll send you a reset link.</p>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="forgot-email" placeholder="john@email.com"/>
+        </div>
+        <button class="btn-submit" id="btn-forgot" onclick="handleForgotPassword()">Send Reset Link →</button>
+        <div style="text-align:center;margin-top:16px">
+          <a href="#" onclick="hideForgotState()" style="font-size:13px;color:var(--gray);text-decoration:none">← Back to Sign In</a>
+        </div>
       </div>
-      <div class="forgot"><a href="#" onclick="handleForgotPassword()">Forgot password?</a></div>
-      <button class="btn-submit" id="btn-login" onclick="handleLogin()">Sign In →</button>
     </div>
   </div>
 
@@ -406,20 +423,34 @@
   }
 
   // ── FORGOT PASSWORD ──
+  function showForgotState() {
+    document.getElementById('login-state').style.display = 'none'
+    document.getElementById('forgot-state').style.display = 'block'
+    clearAlert()
+  }
+
+  function hideForgotState() {
+    document.getElementById('forgot-state').style.display = 'none'
+    document.getElementById('login-state').style.display = 'block'
+    clearAlert()
+  }
+
   async function handleForgotPassword() {
-    const email = document.getElementById('login-email').value.trim()
-    if (!email) return showAlert('Enter your email above first, then click Forgot Password.', 'error')
+    const email = document.getElementById('forgot-email').value.trim()
+    if (!email) return showAlert('Please enter your email address.', 'error')
+
+    const btn = document.getElementById('btn-forgot')
+    btn.disabled = true; btn.textContent = 'Sending...'
 
     const { error } = await sb.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin + '/auth.html'
     })
 
+    btn.disabled = false; btn.textContent = 'Send Reset Link →'
     if (error) return showAlert(error.message, 'error')
 
-    // Hide the login form and show clear success message
-    document.getElementById('form-login').style.display = 'none'
-    document.getElementById('tab-login').classList.remove('active')
-    showAlert('✅ Reset email sent to ' + email + ' — check your inbox and spam folder.', 'success')
+    showAlert('✅ Reset link sent to ' + email + ' — check your inbox and spam folder.', 'success')
+    setTimeout(() => hideForgotState(), 3000)
   }
 
   // ── ENTER KEY SUPPORT ──
