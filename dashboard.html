@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0E2A5C"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="RoadLog"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
 <title>RoadLog — Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -324,6 +330,44 @@
     <a href="account.html" class="btn-upgrade">Upgrade Now</a>
   </div>
 
+
+  <!-- DEDUCTION SUMMARY STRIP -->
+  <div class="ded-strip">
+    <div class="ded-card featured">
+      <div class="ded-label">💰 Year to Date</div>
+      <div class="ded-value" id="ded-ytd">$0</div>
+      <div class="ded-sub">total deductible so far</div>
+    </div>
+    <div class="ded-card">
+      <div class="ded-label">📅 This Month</div>
+      <div class="ded-value" id="ded-month">$0</div>
+      <div class="ded-sub" id="ded-month-label">days this month</div>
+    </div>
+    <div class="ded-card">
+      <div class="ded-label">☀️ Today</div>
+      <div class="ded-value" id="ded-today">—</div>
+      <div class="ded-sub">logged today</div>
+    </div>
+    <div class="ded-card">
+      <div class="ded-label">📈 Projected</div>
+      <div class="ded-value" id="ded-projected">$0</div>
+      <div class="ded-sub">estimated full year</div>
+    </div>
+  </div>
+
+  <!-- 12 MONTH CHART -->
+  <div class="year-chart">
+    <div class="year-chart-header">
+      <div class="year-chart-title">📊 <span id="chart-year-label">2025</span> — All 12 Months</div>
+      <div class="year-chart-legend">
+        <span><span class="legend-dot" style="background:var(--orange)"></span><span class="legend-text">Past months</span></span>
+        <span><span class="legend-dot" style="background:var(--navy)"></span><span class="legend-text">Current month</span></span>
+        <span><span class="legend-dot" style="background:var(--border)"></span><span class="legend-text">No logs</span></span>
+      </div>
+    </div>
+    <div class="chart-bars" id="year-chart"></div>
+  </div>
+
   <!-- STAT CARDS -->
   <div class="stats-grid">
     <div class="stat-card highlight">
@@ -529,10 +573,63 @@
       </div>`
     }).join('')
 
-    document.getElementById('monthly-breakdown').innerHTML = monthHTML || '<div class="panel-empty" style="padding:20px"><span style="color:var(--gray);font-size:14px">No data yet.</span></div>'
+    document.getElementById('monthly-breakdown').innerHTML = monthHTML
+
+    // ── DEDUCTION SUMMARY STRIP ──
+    const todayStr = `${yyyy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`
+    const thisMonthLogs2 = logs.filter(l => l.log_date.startsWith(`${currentYear}-${String(currentMonth+1).padStart(2,'0')}`))
+    const todayLogs = logs.filter(l => l.log_date === todayStr)
+    const ytdTotal = logs.reduce((s,l) => s+parseFloat(l.deductible_amount||0),0)
+    const monthTotal = thisMonthLogs2.reduce((s,l) => s+parseFloat(l.deductible_amount||0),0)
+    const todayTotal = todayLogs.reduce((s,l) => s+parseFloat(l.deductible_amount||0),0)
+
+    // Projected: daily average * 365
+    const dayOfYear = Math.floor((new Date() - new Date(currentYear,0,0)) / 86400000)
+    const dailyAvg = ytdTotal / Math.max(dayOfYear, 1)
+    const projected = dailyAvg * 365
+
+    document.getElementById('ded-ytd').textContent = '$' + ytdTotal.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})
+    document.getElementById('ded-month').textContent = '$' + monthTotal.toFixed(0)
+    document.getElementById('ded-month-label').textContent = thisMonthLogs2.length + ' days this month'
+    document.getElementById('ded-today').textContent = todayTotal > 0 ? '$' + todayTotal.toFixed(2) : '—'
+    document.getElementById('ded-projected').textContent = '$' + projected.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})
+
+    // ── 12 MONTH CHART ──
+    document.getElementById('chart-year-label').textContent = currentYear
+    const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    const monthlyDays = Array(12).fill(0)
+    const monthlyDed = Array(12).fill(0)
+    logs.forEach(l => {
+      const m = new Date(l.log_date + 'T00:00:00').getMonth()
+      monthlyDays[m]++
+      monthlyDed[m] += parseFloat(l.deductible_amount||0)
+    })
+    const maxDays = Math.max(...monthlyDays, 1)
+    const chartHTML = monthlyDays.map((days, m) => {
+      const pct = days > 0 ? Math.max((days/maxDays)*110, 8) : 0
+      const isCurrent = m === currentMonth
+      const barClass = days === 0 ? 'empty' : isCurrent ? 'current' : ''
+      const tip = days > 0 ? `${days} days · $${monthlyDed[m].toFixed(0)}` : 'No logs'
+      return `<div class="chart-col">
+        <div class="chart-days">${days > 0 ? days : ''}</div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar ${barClass}" style="height:${pct}px">
+            <div class="chart-tooltip">${MONTHS_SHORT[m]}: ${tip}</div>
+          </div>
+        </div>
+        <div class="chart-month">${MONTHS_SHORT[m]}</div>
+      </div>`
+    }).join('')
+    document.getElementById('year-chart').innerHTML = chartHTML
+ || '<div class="panel-empty" style="padding:20px"><span style="color:var(--gray);font-size:14px">No data yet.</span></div>'
   }
 
   init()
 </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+    }
+  </script>
 </body>
 </html>
