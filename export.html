@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0E2A5C"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="RoadLog"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
 <title>RoadLog — Export</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -105,6 +111,61 @@
 
   @media(max-width:900px){.sidebar{display:none}.main{margin-left:0;padding:20px 16px}.summary-card{grid-template-columns:1fr 1fr}.export-btns{grid-template-columns:1fr}}
   @media(max-width:480px){.summary-card{grid-template-columns:1fr 1fr}.sum-value{font-size:28px}}
+
+  /* MOBILE TOP BAR */
+  .mobile-topbar {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 150;
+    background: var(--navy); padding: 12px 16px;
+    align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .mobile-topbar img { height: 44px; border-radius: 6px; }
+  .mobile-menu-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--white); font-size: 22px; padding: 4px 8px;
+  }
+  .mobile-nav-overlay {
+    display: none; position: fixed; inset: 0; z-index: 140;
+    background: rgba(0,0,0,0.5);
+  }
+  .mobile-nav-overlay.open { display: block; }
+  .mobile-nav-drawer {
+    position: fixed; top: 0; right: -280px; bottom: 0;
+    width: 260px; background: var(--navy); z-index: 145;
+    padding: 20px 0; transition: right 0.3s ease;
+    display: flex; flex-direction: column;
+  }
+  .mobile-nav-drawer.open { right: 0; }
+  .mobile-nav-header {
+    padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 12px;
+  }
+  .mobile-nav-header img { height: 48px; border-radius: 6px; }
+  .mobile-nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 20px; color: rgba(255,255,255,0.7);
+    text-decoration: none; font-size: 15px; font-weight: 500;
+    transition: all 0.2s; border-left: 3px solid transparent;
+  }
+  .mobile-nav-item:hover, .mobile-nav-item.active {
+    color: var(--white); background: rgba(245,166,35,0.1);
+    border-left-color: var(--orange);
+  }
+  .mobile-nav-spacer { flex: 1; }
+  .mobile-signout {
+    margin: 0 12px 8px; padding: 12px;
+    background: rgba(229,62,62,0.1); border: 1px solid rgba(229,62,62,0.2);
+    border-radius: 8px; color: #fc8181; font-size: 14px; font-weight: 600;
+    cursor: pointer; text-align: center; transition: all 0.2s;
+  }
+  .mobile-signout:hover { background: rgba(229,62,62,0.2); }
+
+  @media (max-width: 900px) {
+    .mobile-topbar { display: flex !important; }
+    .main { margin-left: 0 !important; padding-top: 72px !important; }
+  }
+
 </style>
 </head>
 <body>
@@ -202,7 +263,7 @@
   <div class="preparer-note">
     <span class="note-icon">💡</span>
     <div class="note-text">
-      <strong>Note for your tax preparer:</strong> These deductions are calculated using the IRS per diem method for transportation workers (Rev. Proc. 2011-47). The daily rates are sourced from the U.S. General Services Administration (GSA). The deductible amount shown is 80% of the applicable M&IE rate, as required by IRS rules for self-employed drivers.
+      <strong>Note for your tax preparer:</strong> M&IE deductions are calculated using the IRS per diem method for transportation workers (Rev. Proc. 2011-47). Daily rates are sourced from the GSA. The M&IE deductible is 80% of the applicable rate. Lodging amounts are actual costs paid by the taxpayer and are fully deductible as a business expense on Schedule C.
     </div>
   </div>
 
@@ -283,14 +344,16 @@
     const monthData = {}
     filteredLogs.forEach(l => {
       const m = parseInt(l.log_date.split('-')[1]) - 1
-      if (!monthData[m]) monthData[m] = { days:0, full:0, partial:0, deductible:0 }
+      if (!monthData[m]) monthData[m] = { days:0, full:0, partial:0, deductible:0, lodging:0 }
       monthData[m].days++
       monthData[m].deductible += parseFloat(l.deductible_amount||0)
+      monthData[m].lodging += parseFloat(l.lodging_amount||0)
       if (l.day_type === 'full') monthData[m].full++
       else monthData[m].partial++
     })
 
     const totalDeductible = filteredLogs.reduce((s,l) => s + parseFloat(l.deductible_amount||0), 0)
+    const totalLodging = filteredLogs.reduce((s,l) => s + parseFloat(l.lodging_amount||0), 0)
 
     const rows = Object.keys(monthData).sort((a,b) => a-b).map(m => {
       const md = monthData[m]
@@ -300,12 +363,13 @@
         <td><span class="tag tag-full">${md.full}</span></td>
         <td><span class="tag tag-partial">${md.partial}</span></td>
         <td class="td-deductible">$${md.deductible.toFixed(2)}</td>
+        <td style="font-size:14px;color:var(--gray)">$${(md.lodging||0).toFixed(2)}</td>
       </tr>`
     }).join('')
 
     container.innerHTML = `<table>
       <thead><tr>
-        <th>Month</th><th>Total Days</th><th>Full Days</th><th>Partial Days</th><th>Deductible Amount</th>
+        <th>Month</th><th>Total Days</th><th>Full Days</th><th>Partial Days</th><th>M&IE Deductible</th><th>Lodging</th>
       </tr></thead>
       <tbody>${rows}</tbody>
       <tfoot><tr>
@@ -331,6 +395,7 @@
     const taxCity = userProfile?.tax_home_city || ''
     const taxState = userProfile?.tax_home_state || ''
     const totalDeductible = filteredLogs.reduce((s,l) => s + parseFloat(l.deductible_amount||0), 0)
+    const totalLodging = filteredLogs.reduce((s,l) => s + parseFloat(l.lodging_amount||0), 0)
     const fullDays = filteredLogs.filter(l => l.day_type === 'full').length
     const partialDays = filteredLogs.filter(l => l.day_type === 'partial').length
 
@@ -388,9 +453,10 @@
     const monthData = {}
     filteredLogs.forEach(l => {
       const m = parseInt(l.log_date.split('-')[1]) - 1
-      if (!monthData[m]) monthData[m] = { days:0, full:0, partial:0, deductible:0 }
+      if (!monthData[m]) monthData[m] = { days:0, full:0, partial:0, deductible:0, lodging:0 }
       monthData[m].days++
       monthData[m].deductible += parseFloat(l.deductible_amount||0)
+      monthData[m].lodging += parseFloat(l.lodging_amount||0)
       if (l.day_type === 'full') monthData[m].full++
       else monthData[m].partial++
     })
@@ -512,5 +578,10 @@
     setTimeout(() => { el.className = 'alert'; el.textContent = '' }, 5000)
   }
 </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+    }
+  </script>
 </body>
 </html>
