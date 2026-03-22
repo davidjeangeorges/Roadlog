@@ -416,6 +416,30 @@
     document.getElementById('log-form-wrap').style.display = 'none'
     document.getElementById('check-email-screen').style.display = 'block'
     document.getElementById('check-email-address').textContent = email
+
+    // Notify you of new signup via Resend
+    fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer re_ZhbkwJqV_9DLmrQTXNnhxkZdBghgfMRJ2',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'RoadLog <hello@roadlog.org>',
+        to: ['hello@roadlog.org'],
+        subject: '🚛 New RoadLog Signup — ' + name,
+        html: '<div style="font-family:Arial,sans-serif;max-width:480px">'
+          + '<div style="background:#0E2A5C;padding:24px;border-radius:10px 10px 0 0">'
+          + '<h1 style="color:#F5A623;margin:0;font-size:22px">New Signup!</h1></div>'
+          + '<div style="background:#f9f9f9;padding:24px;border-radius:0 0 10px 10px;border:1px solid #eee">'
+          + '<p><strong>Name:</strong> ' + name + '</p>'
+          + '<p><strong>Email:</strong> ' + email + '</p>'
+          + '<p><strong>Time:</strong> ' + new Date().toLocaleString('en-US', {timeZone:'America/New_York'}) + ' ET</p>'
+          + '<p style="margin-top:20px"><a href="https://roadlog.org/admin.html" '
+          + 'style="background:#0E2A5C;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:700">'
+          + 'View in Admin Panel</a></p></div></div>'
+      })
+    })
   }
 
   // ── LOGIN ──
