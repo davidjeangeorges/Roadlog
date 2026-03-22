@@ -448,7 +448,7 @@
   }
 
   async function saveAndFinish() {
-    const btn = document.getElementById('btn-finish')
+    const btn = document.getElementById('btn-finish-step2')
     btn.disabled = true
     btn.textContent = 'Saving...'
 
@@ -462,7 +462,7 @@
       cdl_number: document.getElementById('cdl-number').value.trim() || null,
       tax_home_city: document.getElementById('tax-city').value.trim(),
       tax_home_state: document.getElementById('tax-state').value,
-      carrier_name: document.getElementById('carrier-name').value.trim() || null,
+      tax_home_zip: document.getElementById('tax-zip').value.trim() || null,
       updated_at: new Date().toISOString()
     })
 

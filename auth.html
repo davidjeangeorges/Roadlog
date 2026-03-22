@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0E2A5C"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="RoadLog"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
 <title>RoadLog — Sign In</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -255,6 +261,7 @@
       <button class="tab" id="tab-login" onclick="switchTab('login')">Sign In</button>
     </div>
 
+    <div id="log-form-wrap">
     <!-- Alert -->
     <div class="alert" id="alert"></div>
 
@@ -309,7 +316,23 @@
           <a href="#" onclick="hideForgotState()" style="font-size:13px;color:var(--gray);text-decoration:none">← Back to Sign In</a>
         </div>
       </div>
+    </div><!-- end log-form-wrap -->
+
+    <!-- CHECK EMAIL SCREEN -->
+    <div id="check-email-screen" style="display:none;text-align:center;padding:20px 0">
+      <div style="font-size:56px;margin-bottom:16px">📧</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;text-transform:uppercase;color:var(--dark-text);margin-bottom:10px">Check Your Email</div>
+      <p style="font-size:15px;color:var(--gray);margin-bottom:8px;line-height:1.6">We sent a confirmation link to:</p>
+      <div style="font-size:16px;font-weight:700;color:var(--dark-text);margin-bottom:24px" id="check-email-address"></div>
+      <p style="font-size:14px;color:var(--gray);line-height:1.6;margin-bottom:24px">Click the link in that email to activate your account.<br/>Then come back here to sign in.</p>
+      <div style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);border-radius:8px;padding:14px;font-size:13px;color:var(--gray);margin-bottom:24px">
+        💡 Don't see it? Check your <strong>spam or junk folder</strong>
+      </div>
+      <button onclick="switchTab('login');document.getElementById('log-form-wrap').style.display='block';document.getElementById('check-email-screen').style.display='none'" style="background:var(--off-white);color:var(--dark-text);font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;text-transform:uppercase;padding:12px 28px;border:none;border-radius:8px;cursor:pointer">
+        Go to Sign In
+      </button>
     </div>
+
   </div>
 
   <div class="back-link"><a href="index.html">← Back to homepage</a></div>
@@ -389,8 +412,10 @@
       })
     }
 
-    showAlert('Account created! Check your email to confirm, then come back to sign in.', 'success')
-    btn.textContent = 'Check Your Email ✓'
+    // Show check email screen
+    document.getElementById('log-form-wrap').style.display = 'none'
+    document.getElementById('check-email-screen').style.display = 'block'
+    document.getElementById('check-email-address').textContent = email
   }
 
   // ── LOGIN ──
@@ -462,5 +487,10 @@
     }
   })
 </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+    }
+  </script>
 </body>
 </html>

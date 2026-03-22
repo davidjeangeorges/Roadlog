@@ -300,6 +300,10 @@
               <input type="text" id="p-carrier" placeholder="Optional"/>
             </div>
             <div class="form-group">
+              <label>Tax Home ZIP</label>
+              <input type="text" id="p-zip" placeholder="32801" maxlength="5" inputmode="numeric"/>
+            </div>
+            <div class="form-group">
               <label>CDL State</label>
               <div class="select-wrap">
                 <select id="p-cdl-state">
@@ -354,15 +358,6 @@
 <option value="WV">WV</option>
 <option value="WI">WI</option>
 <option value="WY">WY</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group full">
-              <label>Worker Type</label>
-              <div class="select-wrap">
-                <select id="p-worker-type">
-                  <option value="owner-operator">Owner-Operator (Schedule C)</option>
-                  <option value="company-driver">Company Driver (W-2)</option>
                 </select>
               </div>
             </div>
@@ -496,6 +491,7 @@
     document.getElementById('p-city').value = p.tax_home_city || ''
     document.getElementById('p-state').value = p.tax_home_state || ''
     document.getElementById('p-carrier').value = p.carrier_name || ''
+    document.getElementById('p-zip').value = p.tax_home_zip || ''
     document.getElementById('p-cdl-state').value = p.cdl_state || ''
     document.getElementById('p-worker-type').value = p.worker_type || 'owner-operator'
     document.getElementById('user-name').textContent = p.full_name || currentUser.email
@@ -564,9 +560,9 @@
       full_name: document.getElementById('p-name').value.trim(),
       tax_home_city: document.getElementById('p-city').value.trim(),
       tax_home_state: document.getElementById('p-state').value,
+      tax_home_zip: document.getElementById('p-zip').value.trim() || null,
       carrier_name: document.getElementById('p-carrier').value.trim() || null,
       cdl_state: document.getElementById('p-cdl-state').value,
-      worker_type: document.getElementById('p-worker-type').value,
       updated_at: new Date().toISOString()
     })
 
