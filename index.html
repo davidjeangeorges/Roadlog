@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0E2A5C"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="RoadLog"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
 <title>RoadLog — Per Diem Tracker for OTR Truckers</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -388,7 +394,7 @@
     <a href="#features">Features</a>
     <a href="#pricing">Pricing</a>
     <a href="#affiliate">Affiliates</a>
-    <a href="auth.html" class="nav-cta">Start Free Trial</a>
+    <a href="auth.html" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:15px;font-weight:500;transition:color 0.2s" onmouseover="this.style.color='#F5A623'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Sign In</a> <a href="auth.html" class="nav-cta">Start Free Trial</a>
   </div>
 </nav>
 
@@ -548,5 +554,10 @@
   <div class="footer-copy">© 2025 RoadLog. All rights reserved.</div>
 </footer>
 
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+    }
+  </script>
 </body>
 </html>

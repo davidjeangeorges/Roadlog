@@ -228,8 +228,7 @@
         <label>Full Name</label>
         <input type="text" id="full-name" placeholder="John Smith"/>
       </div>
-      <div class="form-row">
-        <div class="form-group" style="margin-bottom:0">
+      <div class="form-group">
           <label>CDL State</label>
           <div class="select-wrap">
             <select id="cdl-state">
@@ -287,11 +286,6 @@
             </select>
           </div>
         </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label>CDL Number <span style="font-weight:400;color:var(--gray)">(optional)</span></label>
-          <input type="text" id="cdl-number" placeholder="Optional"/>
-        </div>
-      </div>
       <div class="btn-row" style="margin-top:28px">
         <button class="btn-next" onclick="goStep(2)">Next →</button>
       </div>
@@ -304,6 +298,10 @@
       <p class="step-sub">This is the city and state where you live and return between runs — not where your carrier is based.</p>
       <div class="info-box">
         💡 <strong>Why this matters:</strong> You can only deduct per diem days when you're away from your tax home overnight. We use this to help you track correctly.
+      </div>
+      <div class="form-group">
+        <label>Street Address</label>
+        <input type="text" id="tax-street" placeholder="e.g. 123 Main Street"/>
       </div>
       <div class="form-row">
         <div class="form-group" style="margin-bottom:0">
@@ -368,7 +366,6 @@
             </select>
           </div>
         </div>
-      </div>
       <div class="btn-row" style="margin-top:28px">
         <button class="btn-back" onclick="goStep(1)">← Back</button>
         <button class="btn-next" id="btn-finish-step2" onclick="saveAndFinish()">Finish Setup →</button>
@@ -390,9 +387,11 @@
     2: { label: 'Step 2 of 2', name: 'Your Tax Home', progress: '100%' }
   }
 
-  // Auth guard
+  // Auth guard + auto-populate name
   sb.auth.getSession().then(({ data }) => {
-    if (!data.session) window.location.href = 'auth.html'
+    if (!data.session) { window.location.href = 'auth.html'; return }
+    const name = data.session.user?.user_metadata?.full_name || ''
+    if (name) document.getElementById('full-name').value = name
   })
 
   function goStep(n) {
@@ -459,7 +458,7 @@
       id: user.id,
       full_name: document.getElementById('full-name').value.trim(),
       cdl_state: document.getElementById('cdl-state').value,
-      cdl_number: document.getElementById('cdl-number').value.trim() || null,
+      tax_home_street: document.getElementById('tax-street').value.trim() || null,
       tax_home_city: document.getElementById('tax-city').value.trim(),
       tax_home_state: document.getElementById('tax-state').value,
       tax_home_zip: document.getElementById('tax-zip').value.trim() || null,
@@ -467,7 +466,8 @@
     })
 
     if (error) {
-      showAlert('Something went wrong. Please try again.')
+      console.error('Supabase error:', error)
+      showAlert('Something went wrong: ' + error.message)
       btn.disabled = false
       btn.textContent = 'Finish Setup →'
       return

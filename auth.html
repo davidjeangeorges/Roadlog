@@ -316,9 +316,7 @@
           <a href="#" onclick="hideForgotState()" style="font-size:13px;color:var(--gray);text-decoration:none">← Back to Sign In</a>
         </div>
       </div>
-    </div><!-- end log-form-wrap -->
-
-    <!-- CHECK EMAIL SCREEN -->
+    <!-- CHECK EMAIL SCREEN — inside wrapper so it replaces form correctly -->
     <div id="check-email-screen" style="display:none;text-align:center;padding:20px 0">
       <div style="font-size:56px;margin-bottom:16px">📧</div>
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;text-transform:uppercase;color:var(--dark-text);margin-bottom:10px">Check Your Email</div>
@@ -328,11 +326,12 @@
       <div style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);border-radius:8px;padding:14px;font-size:13px;color:var(--gray);margin-bottom:24px">
         💡 Don't see it? Check your <strong>spam or junk folder</strong>
       </div>
-      <button onclick="switchTab('login');document.getElementById('log-form-wrap').style.display='block';document.getElementById('check-email-screen').style.display='none'" style="background:var(--off-white);color:var(--dark-text);font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;text-transform:uppercase;padding:12px 28px;border:none;border-radius:8px;cursor:pointer">
-        Go to Sign In
+      <button onclick="showSignInAfterConfirm()" style="background:var(--orange);color:var(--navy);font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;text-transform:uppercase;padding:12px 28px;border:none;border-radius:8px;cursor:pointer">
+        I Confirmed — Sign In →
       </button>
     </div>
 
+    </div><!-- end log-form-wrap -->
   </div>
 
   <div class="back-link"><a href="index.html">← Back to homepage</a></div>
@@ -393,7 +392,7 @@
     const { data, error } = await sb.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name } }
+      options: { data: { full_name: name }, emailRedirectTo: 'https://roadlog.org/onboarding.html' }
     })
 
     if (error) {
@@ -413,7 +412,10 @@
     }
 
     // Show check email screen
-    document.getElementById('log-form-wrap').style.display = 'none'
+    document.getElementById('form-signup').style.display = 'none'
+    document.getElementById('form-login').style.display = 'none'
+    document.getElementById('alert').style.display = 'none'
+    document.querySelectorAll('.tabs')[0].style.display = 'none'
     document.getElementById('check-email-screen').style.display = 'block'
     document.getElementById('check-email-address').textContent = email
 
@@ -440,6 +442,13 @@
           + 'View in Admin Panel</a></p></div></div>'
       })
     })
+  }
+
+  function showSignInAfterConfirm() {
+    document.getElementById('check-email-screen').style.display = 'none'
+    document.querySelectorAll('.tabs')[0].style.display = 'flex'
+    document.getElementById('alert').style.display = 'none'
+    switchTab('login')
   }
 
   // ── LOGIN ──
@@ -492,7 +501,7 @@
     btn.disabled = true; btn.textContent = 'Sending...'
 
     const { error } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/auth.html'
+      redirectTo: 'https://roadlog.org/auth.html'
     })
 
     btn.disabled = false; btn.textContent = 'Send Reset Link →'
